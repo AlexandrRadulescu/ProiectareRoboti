@@ -1,0 +1,21 @@
+# Office temporary / lock files
+~$*
+
+# Simulink build cache and autosave/backup files
+slprj/
+*.slxc
+*.autosave
+*.slx.original
+*.slx.r20*
+
+# MATLAB
+*.asv
+*.mex*
+
+# CATIA backups
+*.bak
+
+# OS
+Thumbs.db
+desktop.ini
+.DS_Store
