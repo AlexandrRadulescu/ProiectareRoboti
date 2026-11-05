@@ -27,6 +27,11 @@ Alexandru Rădulescu, Group 2
 
 Coordinators: Prof. univ. dr. ing. Gheorghe Mogan, Asist. drd. Diana Buzdugan
 
+## Media
+
+<img width="1280" height="720" alt="2026-11-05 19-09-34" src="https://github.com/user-attachments/assets/001eac6d-39f3-4810-92ea-dd1e1733e220" />
+
+
 ## Third-party content
 
 The files in `Objects/Gripper/` (SCHUNK EGU 80 gripper) are **not** covered by this project's license. They are distributed unmodified under the [Creative Commons Attribution-NoDerivatives 4.0 (CC BY-ND 4.0)](https://creativecommons.org/licenses/by-nd/4.0/) license:
