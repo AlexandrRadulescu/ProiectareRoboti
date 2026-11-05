@@ -3,8 +3,8 @@ clear; clc;
 % ---------- parametri (aceiasi ca in blocurile Constant din model) ----------
 % Cupla T (Lungime)
 L_T = -325;     % cursa [mm]
-V_T = 200;      % viteza maxima [mm/s]
-A_T = 1000;     % acceleratia maxima [mm/s^2]
+V_T = 0.7;      % viteza maxima [mm/s]
+A_T = 13.5;     % acceleratia maxima [mm/s^2]
 
 % Cupla R (Unghi)
 L_R = 300;      % unghiul [grade]
@@ -15,7 +15,7 @@ t_end = 10;     % durata [s] (aceeasi cu Stop time din Simulink)
 dt    = 1e-3;   % pasul de timp [s]
 
 % ---------- calcul ----------
-t = 0:dt:t_end;
+t = 0:0.5:1860;
 n = numel(t);
 [qT, dqT, ddqT] = deal(zeros(1, n));
 [qR, dqR, ddqR] = deal(zeros(1, n));

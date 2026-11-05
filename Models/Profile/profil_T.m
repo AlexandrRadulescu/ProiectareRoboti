@@ -24,8 +24,8 @@ q = 0; dq = 0; ddq = 0;
 
 % limitele modulului de translatie (din tabel)
 L_lim = 325;      % [mm]
-V_lim = 700;      % [mm/s]
-A_lim = 13500;    % [mm/s^2]
+V_lim = 0.7;      % [mm/s]
+A_lim = 13.5;    % [mm/s^2]
 t_p = 0.2;        % pauza la capete [s] (0 = fara pauza)
 
 % impunere limite
