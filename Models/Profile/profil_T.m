@@ -1,85 +1,78 @@
 function [q, dq, ddq] = profil_T(t, L, V, A)
-% |||||GLOSIER|||||
-% t       - timpul curent (de la Clock) [s]
-% L       - cursa ceruta [mm]
-% V       - viteza maxima ceruta [mm/s]
-% A       - acceleratia maxima ceruta [mm/s^2]
-% x_i     - pozitie initiala
-% x_f     - pozitie finala
-% t_p     - pauza la capetele cursei
-% delta_q - diferenta dintre pozitia finala si cea initiala
-% t_total - durata unei curse
-% T_ciclu - durata unui ciclu complet (dus + intors)
-% Iesiri: q [m], dq [m/s], ddq [m/s^2]
-%
-% Profil cicloidal (acceleratie continua, nula la capetele cursei):
-%   s = t/t_total
-%   q   = delta_q*(s - sin(2*pi*s)/(2*pi))
-%   dq  = delta_q/t_total*(1 - cos(2*pi*s))      -> dq_max  = 2*delta_q/t_total
-%   ddq = 2*pi*delta_q/t_total^2*sin(2*pi*s)     -> ddq_max = 2*pi*delta_q/t_total^2
-% t_total se alege astfel incat sa nu se depaseasca nici V, nici A.
+% Conversie din metri in milimetri pentru toate marimile
 
-% initializare iesiri (necesar pentru generarea de cod in Simulink)
-q = 0; dq = 0; ddq = 0;
+L_mm = L/1000;
+V_mm = abs(V)/1000;
+A_mm = abs(A)/1000;
 
-% limitele modulului de translatie (din tabel)
-L_lim = 325;      % [mm]
-V_lim = 0.7;      % [mm/s]
-A_lim = 13.5;    % [mm/s^2]
-t_p = 0.2;        % pauza la capete [s] (0 = fara pauza)
+% Determinare sens de miscare (+1 sau -1)
+directie = sign(L_mm);
+if directie == 0
+    directie = 1;
+end
 
-% impunere limite
-semn = sign(L);
-L = min(abs(L), L_lim);
-V = min(abs(V), V_lim);
-A = min(abs(A), A_lim);
+delta_q = abs(L_mm);
 
-% conversia din mm in m
-x_i   = 0;
-x_f   = L / 1000;
-v_max = V / 1000;
-a_max = A / 1000;
-delta_q = x_f - x_i;
-t = max(t, 0);
+% Caz limita: deplasare nula
+if delta_q == 0
+    q = zeros(size(t));
+    dq = zeros(size(t));
+    ddq = zeros(size(t));
+    return;
+end
 
-% miscare doar daca toate marimile sunt nenule (altfel q = dq = ddq = 0)
-if delta_q > 0 && v_max > 0 && a_max > 0
-    % durata unei curse: cea mai mare dintre limita de viteza si cea de acceleratie
-    t_total = max(2*delta_q/v_max, sqrt(2*pi*delta_q/a_max));
-    T_ciclu = 2*(t_total + t_p);         % dus + pauza + intors + pauza
-    tm = mod(t, T_ciclu);                % timpul in ciclul curent
+% Timp de accelerare si distanta parcursa in accelerare
+t_a = V_mm / A_mm;
+q1 = V_mm^2 / (2 * A_mm);
 
-    if tm < t_total
-        % cursa de dus
-        [q, dq, ddq] = cursa(tm, delta_q, t_total);
-    elseif tm < t_total + t_p
-        % pauza la capatul cursei
-        q = delta_q; dq = 0; ddq = 0;
-    elseif tm < 2*t_total + t_p
-        % cursa de intoarcere (oglinda cursei de dus)
-        [qf, dqf, ddqf] = cursa(tm - t_total - t_p, delta_q, t_total);
-        q   = delta_q - qf;
-        dq  = -dqf;
-        ddq = -ddqf;
+% Verificare tip de profil: trapezoidal sau triunghiular
+if delta_q >= 2 * q1
+    % Profil trapezoidal (atinge viteza de croaziera V_mm)
+    t_c = (delta_q - 2 * q1) / V_mm;
+else
+    % Profil triunghiular (viteza maxima V_mm nu poate fi atinsa pe distanta L_mm)
+    t_a = sqrt(max(0, delta_q / A_mm));
+    t_c = 0;
+    V_mm = A_mm * t_a;
+end
+
+t_total = 2 * t_a + t_c;
+
+% Initializare vectori de stare
+q = zeros(size(t));
+dq = zeros(size(t));
+ddq = zeros(size(t));
+
+% Calculul pozitiei, vitezei si acceleratiei (in mm, mm/s, mm/s^2)
+for i = 1:length(t)
+    if t(i) < t_a
+        % Faza I: Accelerare constanta
+        q(i) = A_mm * t(i)^2 / 2;
+        dq(i) = A_mm * t(i);
+        ddq(i) = A_mm;
+
+    elseif t(i) <= (t_total - t_a)
+        % Faza II: Viteza constanta (croaziera)
+        q(i) = A_mm * t_a^2 / 2 + V_mm * (t(i) - t_a);
+        dq(i) = V_mm;
+        ddq(i) = 0;
+
+    elseif t(i) <= t_total
+        % Faza III: Decelerare constanta
+        q(i) = delta_q - A_mm * (t_total - t(i))^2 / 2;
+        dq(i) = A_mm * (t_total - t(i));
+        ddq(i) = -A_mm;
+
     else
-        % pauza in pozitia initiala
-        q = 0; dq = 0; ddq = 0;
+        % Dupa oprire (mentinere la valoarea maxima L_mm)
+        q(i) = delta_q;
+        dq(i) = 0;
+        ddq(i) = 0;
     end
 end
 
-% aplicare sens si pozitie initiala
-q   = x_i + semn * q;
-dq  = semn * dq;
-ddq = semn * ddq;
-end
-
-% ---------- profil cicloidal pentru o cursa ----------
-function [q, dq, ddq] = cursa(tt, delta_q, t_total)
-q = delta_q; dq = 0; ddq = 0;   % initializare iesiri
-if tt < t_total
-    s   = tt / t_total;
-    q   = delta_q * (s - sin(2*pi*s)/(2*pi));
-    dq  = delta_q / t_total * (1 - cos(2*pi*s));
-    ddq = 2*pi*delta_q / t_total^2 * sin(2*pi*s);
-end
+% Aplicare sens deplasare
+q = q * directie;
+dq = dq * directie;
+ddq = ddq * directie;
 end
