@@ -15,6 +15,29 @@ slprj/
 # CATIA backups
 *.bak
 
+# Crash logs and dumps (contain username, PATH, installed software)
+hs_err_pid*.log
+replay_pid*.log
+*.dmp
+*.mdmp
+*.hprof
+matlab_crash_dump.*
+*.log
+
+# Secrets / credentials
+.env
+.env.*
+*.pem
+*.key
+*.p12
+*.pfx
+credentials*
+secrets*
+
+# Editor / IDE settings (can contain local paths)
+.vscode/
+.idea/
+
 # OS
 Thumbs.db
 desktop.ini

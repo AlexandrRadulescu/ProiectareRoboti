@@ -18,3 +18,15 @@ Objects/Gripper/  SCHUNK EGU 80 gripper CAD model
     CADENAS GmbH holds the rights for the database in the form of the CAD file.
     SCHUNK SE & Co. KG holds the rights for the original component.
     See Objects/Gripper/license_schunk.txt
+
+Objects/MODUL 2/COMPONENTE/AM8032-xx01.stp
+Objects/MODUL 2/COMPONENTE/AM8032-xx01.CATProduct
+Objects/MODUL 2/COMPONENTE/Intercontec-EEDC101NN00000006000.CATPart
+    Beckhoff AM8032 servomotor CAD model (with Intercontec / TE Connectivity
+    connector). (c) Beckhoff Automation GmbH & Co. KG. All rights reserved.
+
+Objects/MODUL 2/COMPONENTE/CSG-32-XXX-2A-GR.stp
+Objects/MODUL 2/COMPONENTE/CSG-32-XXX-2A-GR.CATPart
+    Harmonic Drive CSG-32 gear unit CAD model.
+    (c) Harmonic Drive SE. All rights reserved.
+    Harmonic Drive(R) is a registered trademark of Harmonic Drive SE.
