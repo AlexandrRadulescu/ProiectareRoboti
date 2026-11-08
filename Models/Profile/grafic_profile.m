@@ -1,58 +1,56 @@
-clear; clc;
+%% GRAFICE PROFIL TRAPEZOIDAL - cupla T si cupla R
+% Ruleaza din acelasi folder cu profil_T.m si profil_R.m.
+clc;   % (fara 'clear', ca sa nu stearga rezultatele simularii din 'out')
 
-% ---------- parametri (aceiasi ca in blocurile Constant din model) ----------
-% Cupla T (Lungime)
-L_T = 325;     % cursa [mm]
-V_T = 0.7;      % viteza maxima [mm/s]
-A_T = 13.5;     % acceleratia maxima [mm/s^2]
+% L, V, A sunt acum in profil_T.m si profil_R.m
 
-% Cupla R (Unghi)
-L_R = 300;      % unghiul [grade]
-V_R = 120;      % viteza unghiulara maxima [grade/s]
-A_R = 510;      % acceleratia unghiulara maxima [grade/s^2]
-
-t_end = 1;     % durata [s] (aceeasi cu Stop time din Simulink)
-dt    = 1e-3;   % pasul de timp [s]
-
-% ---------- calcul ----------
-t = 0:dt:t_end;
-n = numel(t);
-[qT, dqT, ddqT] = deal(zeros(1, n));
-[qR, dqR, ddqR] = deal(zeros(1, n));
-
-for i = 1:n
-    [qT(i), dqT(i), ddqT(i)] = profil_T(t(i), L_T, V_T, A_T);
-    [qR(i), dqR(i), ddqR(i)] = profil_R(t(i), L_R, V_R, A_R);
+%% Cupla T
+t = linspace(0, 0.7, 2000);
+q = zeros(size(t)); dq = q; ddq = q;
+for i = 1:numel(t)
+    [q(i), dq(i), ddq(i)] = profil_T(t(i));
 end
+figure('Name', 'Profil trapezoidal pentru cupla T');
+subplot(3,1,1); plot(t, q, 'b', 'LineWidth', 1.5); grid on;
+title('Grafic pozitie [m]'); xlabel('Timp [s]'); ylabel('Pozitie q(t) [m]');
+subplot(3,1,2); plot(t, dq, 'g', 'LineWidth', 1.5); grid on;
+title('Grafic viteza [m/s]'); xlabel('Timp [s]'); ylabel('Viteza dq(t) [m/s]');
+subplot(3,1,3); plot(t, ddq, 'r', 'LineWidth', 1.5); grid on;
+title('Grafic acceleratie [m/s^2]'); xlabel('Timp [s]'); ylabel('Acceleratie ddq(t) [m/s^2]');
 
-% ---------- grafice ----------
-deseneaza(t, qT, dqT, ddqT, 'Profilul de miscare pentru cupla T', ...
-    'Pozitie q(t) [m]', 'Viteza dq(t) [m/s]', 'Acceleratie ddq(t) [m/s^2]');
+%% Cupla R  (afisat in grade, ca sa se citeasca usor; Simscape primeste rad)
+t = linspace(0, 3.2, 2000);
+q = zeros(size(t)); dq = q; ddq = q;
+for i = 1:numel(t)
+    [q(i), dq(i), ddq(i)] = profil_R(t(i));
+end
+figure('Name', 'Profil trapezoidal pentru cupla R');
+subplot(3,1,1); plot(t, rad2deg(q), 'b', 'LineWidth', 1.5); grid on;
+title('Pozitie (q) [grade]'); xlabel('Timp [s]'); ylabel('Pozitie [grade]');
+subplot(3,1,2); plot(t, rad2deg(dq), 'r', 'LineWidth', 1.5); grid on;
+title('Viteza (dq) [grade/s]'); xlabel('Timp [s]'); ylabel('Viteza [grade/s]');
+subplot(3,1,3); plot(t, rad2deg(ddq), 'g', 'LineWidth', 1.5); grid on;
+title('Acceleratie (ddq) [grade/s^2]'); xlabel('Timp [s]'); ylabel('Acceleratie [grade/s^2]');
 
-deseneaza(t, qR, dqR, ddqR, 'Profilul de miscare pentru cupla R', ...
-    'Pozitie q(t) [rad]', 'Viteza dq(t) [rad/s]', 'Acceleratie ddq(t) [rad/s^2]');
-
-% ---------- valori maxime (pentru verificare fata de limite) ----------
-fprintf('Cupla T: |v|max = %.1f mm/s, |a|max = %.1f mm/s^2\n', ...
-    max(abs(dqT))*1000, max(abs(ddqT))*1000);
-fprintf('Cupla R: |w|max = %.1f grade/s, |e|max = %.1f grade/s^2\n', ...
-    rad2deg(max(abs(dqR))), rad2deg(max(abs(ddqR))));
-
-% ---------- functie locala pentru o figura cu 3 grafice ----------
-function deseneaza(t, q, dq, ddq, titlu, yq, ydq, yddq)
-figure('Name', titlu, 'Color', 'w');
-
-subplot(3,1,1);
-plot(t, q, 'b', 'LineWidth', 1.5); grid on;
-title('Grafic pozitie'); xlabel('Timp [s]'); ylabel(yq);
-
-subplot(3,1,2);
-plot(t, dq, 'g', 'LineWidth', 1.5); grid on;
-title('Grafic viteza'); xlabel('Timp [s]'); ylabel(ydq);
-
-subplot(3,1,3);
-plot(t, ddq, 'r', 'LineWidth', 1.5); grid on;
-title('Grafic acceleratie'); xlabel('Timp [s]'); ylabel(yddq);
-
-sgtitle(titlu);
+%% Forte si momente din simulare (dupa ce ai rulat modelul)
+% Blocurile To Workspace salveaza: translatie_forte, translatie_moment,
+% rotatie_forte, rotatie_moment (Timeseries). In versiunile noi sunt in "out".
+if exist('out', 'var') || exist('translatie_forte', 'var')
+    nume = {'translatie_forte', 'Forte cupla T [N]'; ...
+        'translatie_moment', 'Momente cupla T [N*m]'; ...
+        'rotatie_forte', 'Forte cupla R [N]'; ...
+        'rotatie_moment', 'Momente cupla R [N*m]'};
+    figure('Name', 'Forte si momente');
+    for k = 1:4
+        if exist('out', 'var')
+            ts = out.get(nume{k,1});
+        else
+            ts = eval(nume{k,1});
+        end
+        subplot(2,2,k);
+        d = squeeze(ts.Data);
+        if size(d,1) ~= numel(ts.Time), d = d.'; end   % N x 3
+        plot(ts.Time, d, 'LineWidth', 1.2); grid on;
+        title(nume{k,2}); xlabel('Timp [s]'); legend('x', 'y', 'z');
+    end
 end
